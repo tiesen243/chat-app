@@ -105,7 +105,7 @@ export const ChatBox = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <Card className="fixed bottom-0 left-0 flex w-full items-center justify-center">
+      <Card className="border-x-card border-b-card fixed bottom-0 left-0 flex h-24 w-full items-center justify-center rounded-none">
         <form
           onSubmit={handleFormSubmit}
           className="flex w-full max-w-2xl items-center gap-4"
