@@ -13,6 +13,7 @@ export const POST = async (req: NextRequest) => {
     model,
     messages,
     maxRetries: 1,
+    temperature: 0.69,
   })
 
   return result.toDataStreamResponse()

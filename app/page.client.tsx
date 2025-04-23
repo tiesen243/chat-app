@@ -22,22 +22,22 @@ export const ChatBox = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
   const scrollToBottom = useCallback(() => {
-    if (isAtBottom) {
+    if (isAtBottom)
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
   }, [isAtBottom])
 
   useEffect(() => {
+    const target = messagesEndRef.current
+    if (!target) return
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsAtBottom(entry?.isIntersecting ?? false)
       },
       { threshold: 0.1 },
     )
-    if (messagesEndRef.current) {
-      observer.observe(messagesEndRef.current)
-    }
 
+    observer.observe(target)
     return () => {
       observer.disconnect()
     }
@@ -45,7 +45,37 @@ export const ChatBox = () => {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages, isLoading, scrollToBottom])
+  }, [messages, scrollToBottom])
+
+  const handleFormSubmit = useCallback(
+    (event: React.FormEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (isLoading) stop()
+      else handleSubmit()
+    },
+    [isLoading, stop, handleSubmit],
+  )
+
+  const renderMessagePart = useCallback(
+    (
+      part: {
+        type: string
+        text: string
+      },
+      messageId: string,
+      index: number,
+    ) => {
+      switch (part.type) {
+        case 'text':
+          return <Markdown key={`${messageId}-${index}`}>{part.text}</Markdown>
+        default:
+          return null
+      }
+    },
+    [],
+  )
 
   return (
     <>
@@ -65,16 +95,10 @@ export const ChatBox = () => {
                 message.role !== 'user' && 'px-0',
               )}
             >
-              {message.parts.map((part, i) => {
-                switch (part.type) {
-                  case 'text':
-                    return (
-                      <Markdown key={`${message.id}-${i}`}>
-                        {part.text}
-                      </Markdown>
-                    )
-                }
-              })}
+              {message.parts.map((part, i) =>
+                // @ts-expect-error - part.type is not a string
+                renderMessagePart(part, message.id, i),
+              )}
             </CardContent>
           </Card>
         ))}
@@ -83,20 +107,14 @@ export const ChatBox = () => {
 
       <Card className="fixed bottom-0 left-0 flex w-full items-center justify-center">
         <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-
-            if (isLoading) stop()
-            else handleSubmit()
-          }}
+          onSubmit={handleFormSubmit}
           className="flex w-full max-w-2xl items-center gap-4"
         >
           <Input
             className="h-12"
-            value={input}
             placeholder="Say something..."
             onChange={handleInputChange}
+            value={input}
             disabled={isLoading}
           />
           <Button size="icon" className="size-12">
