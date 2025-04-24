@@ -14,6 +14,9 @@ export const POST = async (req: NextRequest) => {
     messages,
     maxRetries: 1,
     temperature: 0.69,
+    onError: ({ error }) => {
+      console.error(error)
+    },
   })
 
   return result.toDataStreamResponse()
